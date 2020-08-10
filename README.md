@@ -2,12 +2,15 @@
 + 文档还不是很详细，后续有时间再补充。
 
 
-### 注意⚠️
-+ 事件识别是最核心的处理，想要订阅某个事件，一定是需要先识别它
-
+### 安装
+```bash
+npm i web-socket-connect -S
+```
 
 ### 创建实例
 ```typescript
+import WebSocketConnect from 'web-socket-connect';
+
 const wsc = new WebSocketConnect({
     // url: 'wss://www.demo.com/socket?a=1&b=2',
 
