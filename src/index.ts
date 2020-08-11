@@ -218,19 +218,23 @@ class WebSocketConnect<T extends object = { [key: string]: object }> {
             this.dispatchWebSocketEvent(evt);
         };
 
+        // onclose 事件监听器
+        const onClose = (evt: CloseEvent) => {
+            this.dispatchWebSocketEvent(evt);
+
+            // 连接关闭后，同时解除相关事件绑定
+            socket.removeEventListener('open', onOpen);
+            socket.removeEventListener('message', onMessage);
+            socket.removeEventListener('error', onError);
+            socket.removeEventListener('close', onClose);
+        };
+
         this.socket = socket;
 
         socket.addEventListener('open', onOpen);
         socket.addEventListener('message', onMessage);
         socket.addEventListener('error', onError);
-
-        // 连接关闭后，同时解除相关事件绑定
-        socket.addEventListener('close', (evt: CloseEvent) => {
-            socket.removeEventListener('open', onOpen);
-            socket.removeEventListener('message', onMessage);
-            socket.removeEventListener('error', onError);
-            this.dispatchWebSocketEvent(evt);
-        }, { once: true });
+        socket.addEventListener('close', onClose);
     }
 
 
@@ -269,10 +273,10 @@ class WebSocketConnect<T extends object = { [key: string]: object }> {
      * 创建 WebSocket 实例
      * @private
      */
-    private async createSocket(): Promise<WebSocket> {
+    private async createSocket() {
         let { url, protocols } = this.options;
 
-        // TODO：这两个 await 可优化为并行，目前为窜行
+        // TODO：这两个 await 可优化为并行，目前为串行
         if (isFunction(url)) {
             url = await url();
         }
