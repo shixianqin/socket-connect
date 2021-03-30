@@ -5,7 +5,14 @@
     "sourceMap": false,
     "outDir": "dist",
     "strict": true,
-    "experimentalDecorators": true
+    "experimentalDecorators": true,
+    "baseUrl": ".",
+    "removeComments": true,
+    "paths": {
+      "web-socket-connect": [
+        "./src/index.ts"
+      ]
+    }
   },
   "exclude": [
     "node_modules"
