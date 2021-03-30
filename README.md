@@ -1,4 +1,6 @@
 # WebSocketConnect
+灵活控制、轻量、易用的订阅机制的 WebSocket 连接实现方案
+
 
 ## 安装
 ```
@@ -6,37 +8,38 @@ npm i web-socket-connect -S
 ```
 
 ## Demo
+
+
+### TS 类型声明
+`PAD` 的意思是 Params And Data  
+`PADGroup` 的意思是 Params And Data Group
+
+声明类型结构必须如下：
 ```typescript
-import WebSocketConnect, { PAD } from "web-socket-connect";
+import { PAD } from "web-socket-connect";
 
+interface PADGroup {
+    [key: string]: PAD<Params, Data>;
+};
 
-/**
- * 声明 TypeScript 类型，可选
- * PAD 的意思是 Params And Data
- * PADGroup 的意思是 Params And Data Group
- *
- * 声明类型结构必须如下：
- *
- * interface PADGroup {
- *   [key: string]: PAD<Params, Data>;  // 推荐使用此格式
- * };
- *
- * interface PADGroup {
- *   [key: string]: {
- *     Params: any;
- *     Data: any;
- *   }
- * };
- */
+interface PADGroup {
+    [key: string]: {
+        Params: any;
+        Data: any;
+    }
+};
+
 interface PADGroup {
     abc: PAD<{ abcName: string; abcAge: number }, { abcInfo: any, abcLikes: string[] }>;
     def: PAD<{ defName: string; defAge: number }, { defInfo: any, defLikes: string[] }>;
 }
+```
 
+### 创建实例
+类型和全部的选项都是可选的
+```typescript
+import WebSocketConnect from "web-socket-connect";
 
-/**
- * 创建实例
- */
 const connect = new WebSocketConnect<PADGroup>({
     // 是否在意外中断时重新连接，可选
     // 传递 true 则默认延迟 5s 后自动重新连接
@@ -64,35 +67,38 @@ const connect = new WebSocketConnect<PADGroup>({
         // do something...
     }
 });
+```
 
 
-/**
- * 初始化连接，
- * 重复执行无效，内部有去重机制
- */
+### 初始化连接
+首次需要手动执行，这样设计更加灵活，你可以从任何地方开始  
+该方法重复执行无效，内部有去重机制
+```typescript
 connect.connect('https://www.demo.com/socket');
-// connect.connect('https://www.demo.com/socket', 'protocolA');
-// connect.connect('https://www.demo.com/socket', ['protocolA', 'protocolB']);
+
+// use protocols
+connect.connect('https://www.demo.com/socket', 'protocolA');
+connect.connect('https://www.demo.com/socket', ['protocolA', 'protocolB']);
+```
 
 
-/**
- * 启动心跳连接，
- * 重复执行会叠加，一般不这么做
- */
+### 心跳连接
+重复执行会叠加，一般不这么做
+```typescript
 connect.ping(5000, {data: 'ping'});
 
-// 参数可以通过函数获取
+// 通过函数获取参数
 connect.ping(5000, () => {
     return {
         data: 'ping' + Date.now()
     }
 });
+```
 
 
-/**
- * 绑定/移除 socket 事件监听器
- * 可执行多次绑定
- */
+### 绑定/移除 socket 事件监听器
+可执行多次绑定
+```typescript
 connect.on('open', (evt) => {
     // do something...
 });
@@ -118,12 +124,13 @@ function onOpen(evt: Event) {
 
 connect.on('open', onOpen);
 connect.off('open', onOpen);
+```
 
 
-/**
- * 拦截订阅信号，
- * 重复配置相同的类型会覆盖
- */
+### 拦截订阅信号
+全部选项可选，重复配置相同的类型会覆盖  
+`subscribe`、`update`、`unsubscribe` 钩子如果没有返回值或者返回值为 `undefined`，那么最终不会发送数据，相当于取消执行
+```typescript
 connect.interceptor("abc", {
     // 独立识别者，如果配置了唯一识别，这里将不会被执行，可选
     recognizer(data: any): boolean {
@@ -132,13 +139,15 @@ connect.interceptor("abc", {
 
     // 订阅动作钩子，可选
     // 仅在首次订阅该信号时会触发
-    subscribe(params): any {
+    // params 参数不一定存在
+    subscribe(params?): any {
         // do something...
         return params;
     },
 
     // 更新订阅参数动作钩子，可选
     // 从首次到之后的更新都会触发，除了取消订阅信号之外
+    // params 参数一定会存在
     update(params): any {
         // do something...
         return params;
@@ -147,17 +156,18 @@ connect.interceptor("abc", {
     // 取消订阅动作钩子，可选
     // 仅在最后一次取消订阅该信号时触发
     // 如果取消订阅没有传递参数，则参数是发起订阅时或最后更新的参数
-    unsubscribe(params): any {
+    // params 参数不一定存在
+    unsubscribe(params?): any {
         // do something...
         return params;
     }
 });
+```
 
 
-/**
- * 订阅/更新订阅/取消订阅
- * 可执行多次订阅
- */
+### 订阅/更新订阅/取消订阅
+可执行多次订阅
+```typescript
 connect.subscribe("abc", (data) => {
     // do something...
 });
@@ -193,23 +203,24 @@ connect.unsubscribe("abc", abcSubscriber, {
     abcName: 'abc name',
     abcAge: 3
 });
+```
 
 
-/**
- * 手动关闭连接
- * 默认仅关闭连接，如果传递了参数 true，则：
- * 关闭后，socket 事件监听器依然保留，下次重新连接时依然会被触发
- * 关闭后，之前的订阅监听器会全部清空，但仍然可以发起新的订阅和重新连接
- */
+### 关闭连接
+默认仅关闭连接  
+关闭后，socket 事件监听器依然保留，下次重新连接时依然会被触发  
+如果传递了参数 true，则关闭后，之前的订阅监听器会全部清空，但仍然可以发起新的订阅和重新连接
+```typescript
 connect.close();
+
+// 关闭并清除全部订阅监听器
 connect.close(true);
+```
 
 
-/**
- * 销毁实例,
- * 销毁后同时关闭了连接，移除了全部的事件绑定和对象的引用
- * 实例被强行破坏，不可在再发起新的订阅和重新连接
- */
+### 销毁实例
+销毁后同时关闭了连接，移除了全部的事件绑定和对象的引用  
+实例被强行破坏，不可在再发起新的订阅和重新连接
+```typescript
 connect.destroy();
-
 ```

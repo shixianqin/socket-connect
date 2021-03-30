@@ -135,7 +135,10 @@ export default class WebSocketConnect<T extends object, Types extends string = k
     private _queueData: string[] = [];
 
     // 订阅参数缓存，提供给重新连接时还原状态
-    private _paramsCache: { [K in Types]?: PADG[K]['Params'] | null } = {};
+    // 缓存键值如下：
+    // [type].subscribe = Params;
+    // [type].update = Params;
+    private _paramsCache: { [K: string]: PADG[Types]['Params'] } = {};
 
     // 拦截订阅信号配置
     private _interceptors: { [K in Types]?: InterceptorOptions<PADG[K]['Data']> } = {};
@@ -480,10 +483,11 @@ export default class WebSocketConnect<T extends object, Types extends string = k
      */
     private _dispatchAction<K extends Types>(action: Exclude<keyof InterceptorOptions, 'recognizer'>, type: K, params?: PADG[K]['Params']) {
         const interceptor = this._interceptors[type];
+        const cache = this._paramsCache;
 
         // 如果取消订阅没有传递参数，则使用最新的缓存参数
         if (!params && action === "unsubscribe") {
-            params = this._paramsCache[type];
+            params = cache[type];
         }
 
         // 如果存在拦截配置，则先通过拦截
@@ -498,12 +502,13 @@ export default class WebSocketConnect<T extends object, Types extends string = k
                 // 订阅或更新，缓存参数，提供在自动重连的时候还原状态
                 case 'subscribe':
                 case 'update':
-                    this._paramsCache[type] = params;
+                    cache[`${type}_${action}`] = params;
                     break;
 
                 // 取消订阅，删除缓存的参数，避免重连时状态还原混乱
                 case 'unsubscribe':
-                    delete this._paramsCache[type];
+                    delete cache[`${type}_subscribe`];
+                    delete cache[`${type}_update`];
                     break;
             }
 

@@ -1,7 +1,7 @@
 {
   "name": "web-socket-connect",
   "version": "1.0.0",
-  "description": "浏览器客户端 WebSocket 连接订阅事件管理库",
+  "description": "灵活控制、轻量、易用的订阅机制的 WebSocket 连接实现方案",
   "main": "./src/index.ts",
   "dependencies": {},
   "devDependencies": {
