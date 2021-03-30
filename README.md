@@ -1,9 +1,9 @@
 # WebSocketConnect
 
 ## 安装
-`
+```
 npm i web-socket-connect -S
-`
+```
 
 ## Demo
 ```typescript
