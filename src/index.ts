@@ -502,13 +502,13 @@ export default class WebSocketConnect<T extends object, Types extends string = k
                 // 订阅或更新，缓存参数，提供在自动重连的时候还原状态
                 case 'subscribe':
                 case 'update':
-                    cache[`${type}_${action}`] = params;
+                    cache[`${type}.${action}`] = params;
                     break;
 
                 // 取消订阅，删除缓存的参数，避免重连时状态还原混乱
                 case 'unsubscribe':
-                    delete cache[`${type}_subscribe`];
-                    delete cache[`${type}_update`];
+                    delete cache[`${type}.subscribe`];
+                    delete cache[`${type}.update`];
                     break;
             }
 

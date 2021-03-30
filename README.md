@@ -74,11 +74,11 @@ const connect = new WebSocketConnect<PADGroup>({
 首次需要手动执行，这样设计更加灵活，你可以从任何地方开始  
 该方法重复执行无效，内部有去重机制
 ```typescript
-connect.connect('https://www.demo.com/socket');
+connect.connect('wss://www.demo.com/socket');
 
 // use protocols
-connect.connect('https://www.demo.com/socket', 'protocolA');
-connect.connect('https://www.demo.com/socket', ['protocolA', 'protocolB']);
+connect.connect('wss://www.demo.com/socket', 'protocolA');
+connect.connect('wss://www.demo.com/socket', ['protocolA', 'protocolB']);
 ```
 
 
