@@ -1,18 +1,12 @@
 {
   "compilerOptions": {
     "module": "esnext",
-    "target": "esnext",
+    "target": "es5",
     "sourceMap": false,
     "outDir": "dist",
     "strict": true,
-    "experimentalDecorators": true,
-    "baseUrl": ".",
     "removeComments": true,
-    "paths": {
-      "web-socket-connect": [
-        "./src/index.ts"
-      ]
-    }
+    "moduleResolution": "Node"
   },
   "exclude": [
     "node_modules"
